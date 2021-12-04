@@ -1,12 +1,12 @@
 import * as fs from 'fs';
-import { partOne } from './code';
+import { partOne, partTwo, readBoards } from './code';
 
 function loadInput() {
-    return fs.readFileSync('day04/input.json', 'utf-8')
+    return JSON.parse(fs.readFileSync('day04/input.json', 'utf-8'))
 }
 
 function loadBoards() {
-    return fs.readFileSync('day04/boards.json', 'utf-8')
+    return JSON.parse(fs.readFileSync('day04/boards.json', 'utf-8'))
 }
 
 
@@ -36,8 +36,29 @@ describe('Part One', () => {
     it('should pass test input', () => {
         expect(partOne(testInput, testBoards)).toBe(4512);
     })
+    it('should do winners', () => {
+        const entry = [14, 21, 17, 24,  4]
+        const selected = [7,4,9,5,11,17,23,2,0,14,21,24]
+
+        const win = entry.every(e => selected.includes(e))
+
+        expect(win).toBe(true)
+    })
+    it('should load real boards', () => {
+        readBoards(testBoards)
+    })
+    it('should pass real input', () => {
+        // expect(partOne(loadInput(), loadBoards())).toBeLessThan(63342);
+        expect(partOne(loadInput(), loadBoards())).toBe(0);
+    })
 })
 
 describe('Part Two', () => {
-
+    it('should pass test input', () => {
+        expect(partTwo(testInput, testBoards)).toBe(1924)
+    })
+    it.only('should pass real input', () => {
+        const result = partTwo(loadInput(), loadBoards())
+        expect(result).toBe(8224)
+    })
 })
