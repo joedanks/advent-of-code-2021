@@ -32,7 +32,7 @@ const testBoards = [
 ' 2  0 12  3  7'
 ]
 
-describe('Part One', () => {
+describe.skip('Part One', () => {
     it('should pass test input', () => {
         expect(partOne(testInput, testBoards)).toBe(4512);
     })
@@ -53,7 +53,7 @@ describe('Part One', () => {
     })
 })
 
-describe('Part Two', () => {
+describe.skip('Part Two', () => {
     it('should pass test input', () => {
         expect(partTwo(testInput, testBoards)).toBe(1924)
     })
