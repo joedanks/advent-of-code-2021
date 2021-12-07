@@ -22,17 +22,18 @@ describe('Part One', () => {
     it('should pass test input', () => {
         expect(partOne(testInput)).toBe(5)
     })
-    it.only('should pass real input', () => {
-        expect(partOne(loadInput())).toBe(0)
+    it('should pass real input', () => {
+        expect(partOne(loadInput())).toBe(5280)
     })
 })
 
 describe('Part Two', () => {
     it('should pass test input', () => {
-        expect(partTwo(testInput)).toBe(1924)
+        expect(partTwo(testInput)).toBe(12)
     })
-    it('should pass real input', () => {
-        const result = partTwo(loadInput(), loadBoards())
-        expect(result).toBe(8224)
+    it.only('should pass real input', () => {
+        const result = partTwo(loadInput())
+        expect(result).toBeGreaterThan(12680)
+        expect(result).toBe(12680)
     })
 })
