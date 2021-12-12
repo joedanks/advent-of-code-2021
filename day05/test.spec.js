@@ -31,7 +31,7 @@ describe('Part Two', () => {
     it('should pass test input', () => {
         expect(partTwo(testInput)).toBe(12)
     })
-    it.only('should pass real input', () => {
+    it('should pass real input', () => {
         const result = partTwo(loadInput())
         expect(result).toBeGreaterThan(12680)
         expect(result).toBe(12680)

@@ -57,7 +57,7 @@ describe.skip('Part Two', () => {
     it('should pass test input', () => {
         expect(partTwo(testInput, testBoards)).toBe(1924)
     })
-    it.only('should pass real input', () => {
+    it('should pass real input', () => {
         const result = partTwo(loadInput(), loadBoards())
         expect(result).toBe(8224)
     })
