@@ -1,3 +1,5 @@
+import _ from 'lodash'
+
 // function buildCube(x, y, z) {
 //     const cube = {}
 //     for (let i = 0; i <= x; i++) {
@@ -82,25 +84,23 @@ export function partOne(instructions) {
     return sumOnWithinBounds(xBoundary, yBoundary, zBoundary, cube)
 }
 
-function calcVolume(xs, ys, zs) {
-    const x = BigInt(xs[1] - xs[0])
-    const y = BigInt(ys[1] - ys[0])
-    const z = BigInt(zs[1] - zs[0])
+// function calcVolume(xs, ys, zs) {
+//     const x = BigInt(xs[1] - xs[0])
+//     const y = BigInt(ys[1] - ys[0])
+//     const z = BigInt(zs[1] - zs[0])
 
-    return x * y * z
-}
+//     return x * y * z
+// }
 
 class Rectangle {
-    action = 'unknown'
-
-    constructor(xs, ys, zs) {
+    constructor(xs, ys, zs, action = 'unknown') {
         this.minX = xs[0]
         this.maxX = xs[1]
         this.minY = ys[0]
         this.maxY = ys[1]
         this.minZ = zs[0]
         this.maxZ = zs[1]
-        this.intersections = []
+        this.action = action
     }
 
     intersects(other) {
@@ -109,84 +109,114 @@ class Rectangle {
             && (this.minZ <= other.maxZ && this.maxZ >= other.minZ)
     }
 
-    split(other) {
-        if (this.intersects(other)) {
-            return [
-                new Rectangle(
-                    [Math.min(this.minX, other.minX), Math.max(this.minX, other.minX)],
-                    [Math.min(this.minY, other.minY), Math.max(this.minY, other.minY)],
-                    [Math.min(this.minZ, other.minZ), Math.max(this.minZ, other.minZ)],
-                )
-            ]
-        }
+    get volume() {
+        const x = BigInt(Math.abs(this.maxX - this.minX))
+        const y = BigInt(Math.abs(this.maxY - this.minY))
+        const z = BigInt(Math.abs(this.maxZ - this.minZ))
+
+        return x * y * z
     }
 }
 
 function buildSplitRectangles(a, b) {
     const xSegments = [
-        [Math.min(a.minX, b.minX), Math.max(a.minX, b.minX)],
+        [Math.min(a.minX, b.minX), a.minX === b.minX ? Math.max(a.minX, b.minX) : Math.max(a.minX, b.minX) - 1],
         [Math.max(a.minX, b.minX), Math.min(a.maxX, b.maxX)],
-        [Math.min(a.maxX, b.maxX), Math.max(a.maxX, b.maxX)],
+        [a.maxX === b.maxX ? Math.min(a.maxX, b.maxX) : Math.min(a.maxX, b.maxX) + 1, Math.max(a.maxX, b.maxX)],
     ].filter(([x1, x2]) => x1 !== x2)
     const ySegments = [
-        [Math.min(a.minY, b.minY), Math.max(a.minY, b.minY)],
+        [Math.min(a.minY, b.minY), a.minY === b.minY ? Math.max(a.minY, b.minY) : Math.max(a.minY, b.minY) - 1],
         [Math.max(a.minY, b.minY), Math.min(a.maxY, b.maxY)],
-        [Math.min(a.maxY, b.maxY), Math.max(a.maxY, b.maxY)],
+        [a.maxY === b.maxY ? Math.min(a.maxY, b.maxY) : Math.min(a.maxY, b.maxY) + 1, Math.max(a.maxY, b.maxY)],
     ].filter(([y1, y2]) => y1 !== y2)
     const zSegments = [
-        [Math.min(a.minZ, b.minZ), Math.max(a.minZ, b.minZ)],
+        [Math.min(a.minZ, b.minZ), a.minZ === b.minZ ? Math.max(a.minZ, b.minZ) : Math.max(a.minZ, b.minZ) - 1],
         [Math.max(a.minZ, b.minZ), Math.min(a.maxZ, b.maxZ)],
-        [Math.min(a.maxZ, b.maxZ), Math.max(a.maxZ, b.maxZ)],
+        [a.maxZ === b.maxZ ? Math.min(a.maxZ, b.maxZ) : Math.min(a.maxZ, b.maxZ) + 1, Math.max(a.maxZ, b.maxZ)],
     ].filter(([z1, z2]) => z1 !== z2)
 
-    xSegments.flatMap(xs => {
+    const splitRectangles = xSegments.flatMap(xs => {
         return ySegments.flatMap(ys => {
             return zSegments.map(zs => {
                 return new Rectangle(xs, ys, zs)
             })
         })
-    }).map(r => {
-        if (r.intersects(a)) {
-            r.action = a.action
-            return r
-        } else if (r.intersects(b)) {
-            r.action = b.action
-            return r
-        }
-        return undefined
-    }).filter(r => r)
+    })
+    return splitRectangles
+        .map(r => {
+            if (r.intersects(a) && r.intersects(b)) {
+                r.action = b.action
+                return r
+            } else if (r.intersects(a)) {
+                r.action = a.action
+                return r
+            } else if (r.intersects(b)) {
+                r.action = b.action
+                return r
+            }
+            return undefined
+        })
+        .filter(r => r !== undefined)
+        .filter(r => r.action === 'on')
 }
 
-function buildRectangle(instruction) {
-    const [onOff, xs, ys, zs] = instruction
-    return {
-        minX: xs[0],
-        maxX: xs[1],
-        minY: ys[0],
-        maxY: ys[1],
-        minZ: zs[0],
-        maxZ: zs[1],
-        action: onOff,
-        volumeOn: calcVolume(xs, ys, zs),
-        intersections: []
+function anyIntersect(rectangles) {
+    for (let i = 0; i < rectangles.length - 1; i++) {
+        const a = rectangles[i]
+        for (let j = i+1; j < rectangles.length; j++) {
+            const b = rectangles[j]
+
+            if (a.intersects(b)) {
+                return true
+            }
+        }
     }
+    return false
+}
+
+function applyRectangle(rectangles, next) {
+    if (!rectangles.length) {
+        return [next]
+    }
+
+    const [noInts, splits] = rectangles.reduce(([noIntersections, splits], r) => {
+        if (r.intersects(next)) {
+            return [
+                noIntersections,
+                [...splits, ...buildSplitRectangles(r, next)]
+            ]
+        }
+        return [
+            [...noIntersections, r],
+            splits
+        ]
+    }, [[], []])
+
+    if (!splits.length) {
+        return [...noInts, next]
+    }
+
+    const reduced = splits.reduce((acc, split) => {
+        return applyRectangle(acc, split)
+    }, noInts)
+    return reduced
 }
 
 export function partTwo(instructions) {
-    instructions.map(inst => {
-        const rect = buildRectangle(inst)
-        return rect
-    }).reduce((prev, curr) => {
+    const originalRectangles = instructions.map(i => parseInstruction(i))
+        .map(inst => new Rectangle(inst[1], inst[2], inst[3], inst[0]))
 
-    })
-    const cube = {}
-    const xBoundary = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]
-    const yBoundary = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]
-    const zBoundary = [Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER]
 
-    instructions.map(i => parseInstruction(i))
-        .forEach(instruction => execute(instruction, cube, xBoundary, yBoundary, zBoundary))
+    const first = originalRectangles.shift()
 
-    return sumOnWithinBounds(xBoundary, yBoundary, zBoundary, cube)
+    const result = originalRectangles.reduce((rectangles, next) => {
+        if (anyIntersect(rectangles)) {
+            console.log('bad news')
+        }
+        return applyRectangle(rectangles, next)
+    }, [first])
+
+    return result.map(r => r.volume)
+        .reduce((a, b) => a + b)
 }
 

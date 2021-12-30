@@ -18,5 +18,8 @@
     "@babel/preset-env": "^7.16.4",
     "babel-jest": "^27.4.2",
     "jest": "^27.4.3"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21"
   }
 }
